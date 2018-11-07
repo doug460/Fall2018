@@ -9,13 +9,15 @@ from cmath import exp
 import matplotlib.pyplot as plt
 import numpy as np
 
+
 if __name__ == '__main__':
     pass
     
     angles = 720
     bw = 360 / (2 * pi) * pi / 10
     
-    
+    N = 13
+    d = 3 / (N-1)
     
     sf = np.ones((720))
     # side lobe
@@ -47,10 +49,9 @@ if __name__ == '__main__':
         
     # calculate first integral for current distribution
     # here the length is really only 3 lambda
-    N = 51
+    
     dTheta = 2 * pi / 720
-    d = 1/2
-    l = d * N
+    l = N * d
     dz = l / 720
     for indxZ in range (0,720):
         value = 0+0j
@@ -111,33 +112,57 @@ if __name__ == '__main__':
     
     # get excitation coefficients
     am = []
+    
     for indxM in range(ceil(N/2)):
         value = 0
         for indxTheta in range(0,720):
             theta = dTheta * indxTheta
-            value += sfFinal[indxTheta] * exp(-1j * indxM * theta) * dTheta
+            phi = 2 * pi * d * cos(theta) - pi/2
+            value += sfFinal[indxTheta] * exp(-1j * indxM * phi) * dTheta
             
         value = abs(value) / (2 * pi)
         am.append(value)
-            
+    
+    am = am / np.max(am)
+    
     for indxM in range(ceil(N/2)):
         print('%d: %f' % (indxM, am[indxM]))
-    
-    print('Max Ratio %f' % (max / mid))
-    print('Side-lobe max / side %f' % (max/side))
-    print('hpbw %f' % (hpbw))
-    print('hpbw2 %f' % (hpbw2))
+
+
     print('hpbw desired %f' % (pi / 8))
     
+    
+    # get array factor from equation a coefficients
+    af = []
+   
+    for indxTheta in range(0,720):
+        sum = 0
+        theta = dTheta * indxTheta 
+        for n in range(-len(am)+1, len(am)):
+            if(n<0):
+                an = am[-n]
+            else:
+                an = am[n]
+            sum += an * exp(1j*n*(2*pi*d*cos(theta) - pi/2))
         
-
+        af.append(abs(sum))
+    
+    ratio = af[0] / af[360]
+    
+    # get hpbw
+    max = af[0]
+    for indxTheta in range(0,45*2):
+        value = af[indxTheta]
+        if value > max / 2:
+            hpbwAngle = indxTheta * dTheta
+        
+    print('Ratio is %f' % (ratio))
+    print('Actual hpbw is %f' % (hpbwAngle))
+    
+    
     plt.figure()
-    plt.plot(x, sfFinal)
-    
-    
-        
-    
-    
+    plt.polar(x, af)
+
     plt.show()    
         
         
