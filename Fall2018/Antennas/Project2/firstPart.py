@@ -4,10 +4,11 @@ Created on Nov 4, 2018
 @author: dabrown
 '''
 
-from math import pi, sin, cos, ceil
+from math import pi, sin, cos, ceil, sqrt
 from cmath import exp
 import matplotlib.pyplot as plt
 import numpy as np
+from mpl_toolkits.mplot3d import Axes3D
 
 
 if __name__ == '__main__':
@@ -29,8 +30,8 @@ if __name__ == '__main__':
         sf[indx] = 0
         sf[angles - indx] = 0       
     for indx in range(360, 360+2*round(bw/2)):
-        sf[indx] = 0.25;
-        sf[angles-indx] = 0.25
+        sf[indx] = 0.15;
+        sf[angles-indx] = 0.15
         
     for indx in range(360 + 2 * round(bw/2), 360 + 4 * round(bw/2)):
         sf[indx] = 0;
@@ -42,7 +43,10 @@ if __name__ == '__main__':
     x = np.linspace(0, 2 * pi, num=720)
 
     plt.plot(x, sf)
-    plt.title('Desired Pattern')
+    plt.title('Baseline Pattern')
+    plt.xlabel('Theta')
+    plt.ylabel('Amplitude')
+    plt.savefig('BaselinePattern.png')
     
     kz = 0 # symetric pattern
     I = []
@@ -51,7 +55,7 @@ if __name__ == '__main__':
     # here the length is really only 3 lambda
     
     dTheta = 2 * pi / 720
-    l = N * d
+    l = 60#N * d
     dz = l / 720
     for indxZ in range (0,720):
         value = 0+0j
@@ -133,7 +137,7 @@ if __name__ == '__main__':
     
     
     # get array factor from equation a coefficients
-    af = []
+    af = np.zeros((720,1))
    
     for indxTheta in range(0,720):
         sum = 0
@@ -145,7 +149,7 @@ if __name__ == '__main__':
                 an = am[n]
             sum += an * exp(1j*n*(2*pi*d*cos(theta) - pi/2))
         
-        af.append(abs(sum))
+        af[indxTheta] = (abs(sum))
     
     ratio = af[0] / af[360]
     
@@ -153,16 +157,35 @@ if __name__ == '__main__':
     max = af[0]
     for indxTheta in range(0,45*2):
         value = af[indxTheta]
-        if value > max / 2:
+        if value > max / sqrt(2):
             hpbwAngle = indxTheta * dTheta
+        
+    hpbwAngle *= 2
+            
+    # get hpbw2 of back side
+    max2 = af[360]
+    for indxTheta in range(360,460):
+        value = af[indxTheta]
+        if value > max2 / sqrt(2):
+            hpbw2Angle = indxTheta * dTheta
+        else:
+            break
+    hpbw2Angle =  hpbw2Angle - pi
+    hpbw2Angle *= 2
         
     print('Ratio is %f' % (ratio))
     print('Actual hpbw is %f' % (hpbwAngle))
+    print('Actual hpbw2 is %f' % (hpbw2Angle))
     
+    af = af / np.max(af)
     
     plt.figure()
     plt.polar(x, af)
+    plt.title('Array Factor')
+    plt.savefig('af.png')
+            
 
+    
     plt.show()    
         
         
