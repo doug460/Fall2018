@@ -62,7 +62,7 @@ if __name__ == '__main__':
     plt.figure()
     plt.plot(x[0:720],af[0:720])
     plt.title('Figure 3: Array Factor y-z plane')
-    plt.xlabel(r'$\theta')
+    plt.xlabel(r'$\theta$')
     plt.ylabel('AF')
     plt.savefig('p1_zeros.png')
     
